@@ -15,8 +15,8 @@ void CheckButton::SetPosition(int x, int y){
 	checkmark.setPosition(x,y-16);
 }
 
-void CheckButton::ProcessInput(const sf::Event &event){
-	Button::ProcessInput(event);
+bool CheckButton::ProcessInput(const sf::Event &event){
+	return Button::ProcessInput(event);
 }
 
 

@@ -1,22 +1,51 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "InputState.hpp"
-#include "Widgets/Button.hpp"
-#include "Widgets/CheckButton.hpp"
+#include <functional>
+#include "InputManager.hpp"
+#include "GUIManager.hpp"
 
 
-void call_me(bool t, void *user_data){
-	std::string *text = (std::string *)user_data;
-	if(t){
-		std::cout << *text << ": T is true\n";
-	}else{
-		std::cout << *text << ": T is false\n";
-	}
+
+void call_me(){
+	std::cout << "call_me()\n";
 }
+void up(){
+
+	std::cout << "UP!\n";
+}
+
+
+class Dummy{
+public:
+	Dummy(sf::Font &font){
+		text = sf::Text("", font, 50);
+	}
+	void Draw(sf::RenderWindow &window){
+		window.draw(text);
+	}
+	void print1(){
+		std::cout << "d" << i++ << "\n";
+		text.setString("down!");
+	}
+	void print2(){
+		std::cout << "u" << i++ << "\n";
+		text.setString("up!");
+	}
+protected:
+	int i = 0;
+	sf::Text text;
+};
+
+
 
 int main()
 {
+
+
+
+
+
 	// Create the main window
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 
@@ -24,37 +53,40 @@ int main()
 	sf::Font font;
 	if (!font.loadFromFile("arial.ttf"))
 		return EXIT_FAILURE;
-	sf::Text text("", font, 50);
 
 
-	InputState::SetDefaultActionMapping();
+	Dummy *dummy = new Dummy(font);
+
+	InputManager::Initialize();
+	GUIManager::Initialize();
+	ActionManager::Initialize();
+	InputManager::SetDefaultActionMapping();
 
 
-	InputState::GetKeyForAction(ActionTypes::MoveLeft);
-	InputState::GetKeyForAction(ActionTypes::MoveRight);
-	InputState::GetKeyForAction(ActionTypes::MoveUp);
-	InputState::GetKeyForAction(ActionTypes::MoveDown);
-	InputState::GetKeyForAction(ActionTypes::Attack, true);
+	ActionManager::MapActionToFunctionDown(ActionTypes::MoveLeft, std::bind(&Dummy::print1, dummy));
+	ActionManager::MapActionToFunctionUp(ActionTypes::MoveLeft, std::bind(&Dummy::print2, dummy));
 
-	sf::Texture texture;
-	texture.loadFromFile("check.png");
+	ActionManager::MapActionToFunctionDown(ActionTypes::MoveRight, std::bind(&Dummy::print1, dummy));
+	ActionManager::MapActionToFunctionUp(ActionTypes::MoveRight, std::bind(&Dummy::print2, dummy));
 
 
-	std::string text1 = "hello";
-	Button button(text1, font, 100,100);
-	button.SetSize(100,25);
-	button.SetToggle(false);
-	button.SetCallback(call_me, &text1);
 
-	std::string text2 = "world";
-	Button toggle_button("world!", font, 210,100);
-	toggle_button.SetSize(100,25);
-	toggle_button.SetToggle(true);
-	toggle_button.SetCallback(call_me, &text2);
+	InputManager::BindKeyToAction(ActionTypes::MoveLeft);
+	InputManager::BindKeyToAction(ActionTypes::MoveRight);
 
-	std::string text3 = "I'm a toggle!";
-	CheckButton check_button(text3, font, 100,135, texture);
-	check_button.SetCallback(call_me, &text3);
+
+
+
+
+
+	Button *button = GUIManager::MakeButton("left", 100,100, 100,25);
+	ActionManager::MapWidgetToAction(ActionTypes::MoveLeft, button);
+
+	// Button *toggle_button = GUIManager::MakeToggleButton("world!", 210,100,100,25);
+	// toggle_button->SetCallback(std::function<void ()>(call_me));
+
+	CheckButton *check_button = GUIManager::MakeCheckButton("I'm a toggle!", 100,135);
+	ActionManager::MapWidgetToAction(ActionTypes::MoveRight, check_button);
 
 	// Start the game loop
 	while (window.isOpen())
@@ -67,41 +99,26 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 			
-			InputState::ProcessInput(event);
+			if(!GUIManager::ProcessInput(event))
+				InputManager::ProcessInput(event);
 
-
-			button.ProcessInput(event);
-			toggle_button.ProcessInput(event);
-			check_button.ProcessInput(event);
 		}
 		// Clear screen
 		window.clear();
 
 
-		std::string str = "";
-
-		if(InputState::GetAction(ActionTypes::MoveLeft))
-			str="moving left!\n";
-		else if(InputState::GetAction(ActionTypes::MoveRight))
-			str="moving right!\n";
-		else if(InputState::GetAction(ActionTypes::MoveUp))
-			str="moving up!\n";
-		else if(InputState::GetAction(ActionTypes::MoveDown))
-			str="moving down!\n";
-		
-		if(InputState::GetAction(ActionTypes::Attack))
-			std::cout << "attacked\n";
-
-		text.setString(str);
-
-		window.draw(text);
-
-		button.Draw(window);
-		toggle_button.Draw(window);
-		check_button.Draw(window);
+		dummy->Draw(window);
+		GUIManager::Draw(window);
 
 		// Update the window
 		window.display();
 	}
+
+
+
+	delete dummy;
+
+	GUIManager::Finalize();
+
 	return EXIT_SUCCESS;
 }

@@ -17,7 +17,7 @@ void Button::SetPosition(int x, int y){
 	UpdateTextLocation();
 }
 
-void Button::SetText(std::string name){
+void Button::SetText(const sf::String& name){
 	text.setString(name);
 	UpdateTextLocation();
 }
@@ -33,28 +33,6 @@ void Button::SetSize(int w, int h){
 }
 
 void Button::UpdateTextLocation(){
-	// ------------------centered:
-	/*
-	// set text size to height of button
-	text.setCharacterSize (rectangle.getSize().y);
-
-	// set text origin to its center
-	sf::FloatRect textRect = text.getLocalBounds();
-	text.setOrigin(textRect.left,
-	               textRect.top  + textRect.height/2.0f);
-
-
-
-
-	// place the text into the center of the button
-	const int loc_x  = rectangle.getPosition().x;
-	const int loc_y  = rectangle.getPosition().y;
-	const int width  = rectangle.getSize().x;
-	const int height = rectangle.getSize().y;
-
-	// 2 to account for border and 3 more for padding
-	text.setPosition(loc_x+width+5,loc_y+(height/2));*/
-
 
 	// ------------------aligned left:
 
@@ -79,24 +57,45 @@ void Button::UpdateTextLocation(){
 	text.setPosition(loc_x+5,loc_y+(height/2));
 }
 
+void Button::SetAcionDownState(){
+	if(is_toggle_button)
+		state_clicked = !state_clicked;
+	else
+		state_clicked = true;
+
+	UpdateColors();
+}
+void Button::SetAcionUpState(){
+	if(!is_toggle_button)
+		state_clicked = false;
+
+	UpdateColors();
+}
 
 
-void Button::ProcessInput(const sf::Event &event){
+bool Button::ProcessInput(const sf::Event &event){
+	static bool was_just_clicked = false;
+	bool return_me = false;
 	if(event.type == sf::Event::MouseButtonPressed){
 		if(rectangle.getGlobalBounds().contains(event.mouseButton.x,event.mouseButton.y)){
 
-			if(is_toggle_button)
-				state_clicked = !state_clicked;
-			else
-				state_clicked = true;
+			// calls calls a correlated function to this button
+			// which ends up calling SetAcionDownState().
+			ActionManager::FireDown(action);
 
-			if(callback != nullptr)
-				callback(state_clicked,user_data);
+			was_just_clicked = true;
+			return_me = true;
 		}
 	}
 	else if(event.type == sf::Event::MouseButtonReleased){
-		if(!is_toggle_button)
-			state_clicked = false;
+		// in the event that the button was clicked,
+		// we do not want to let a mouse up signal escape
+		if(was_just_clicked){
+			return_me = true;
+			was_just_clicked = false;
+			ActionManager::FireUp(action);
+		}
+
 	}
 
 	if(event.type == sf::Event::MouseMoved){
@@ -106,28 +105,31 @@ void Button::ProcessInput(const sf::Event &event){
 			state_hovering = false;
 	}
 
+	Button::UpdateColors();
 
-	// set the appropriate colors
+	return return_me;
+}
+
+void Button::UpdateColors(){
 	if(state_clicked)
 		SetClickedColors();
 	else if(state_hovering)
 		SetHoveringColors();
 	else
 		SetNormalColors();
-
 }
 
 
 
 void Button::SetNormalColors(){
-	rectangle.setFillColor(sf::Color(150, 50, 250));
-	rectangle.setOutlineColor(sf::Color(250, 150, 100));
+	rectangle.setFillColor(GetNormalFill());
+	rectangle.setOutlineColor(GetNormalOutline());
 }
 void Button::SetHoveringColors(){
-	rectangle.setFillColor(sf::Color(200, 100, 250));
-	rectangle.setOutlineColor(sf::Color(250, 150, 100));
+	rectangle.setFillColor(GetHoveringFill());
+	rectangle.setOutlineColor(GetHoveringOutline());
 }
 void Button::SetClickedColors(){
-	rectangle.setFillColor(sf::Color(255, 0, 0));
-	rectangle.setOutlineColor(sf::Color(250, 150, 100));
+	rectangle.setFillColor(GetClickedFill());
+	rectangle.setOutlineColor(GetClickedOutline());
 }
