@@ -3,8 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <functional>
-#include "Widgets/Button.hpp"
-#include "Widgets/CheckButton.hpp"
+#include "../Widgets/Include/Button.hpp"
+#include "../Widgets/Include/CheckButton.hpp"
 #include "ActionTypes.hpp"
 
 struct WidgetList{

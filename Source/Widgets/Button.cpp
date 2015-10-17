@@ -1,4 +1,4 @@
-#include "Button.hpp"
+#include "./Include/Button.hpp"
 
 Button::Button(std::string name, sf::Font& font, int loc_x, int loc_y){
 	SetPosition(loc_x, loc_y);

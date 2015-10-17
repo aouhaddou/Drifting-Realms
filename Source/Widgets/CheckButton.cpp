@@ -1,4 +1,4 @@
-#include "CheckButton.hpp"
+#include "./Include/CheckButton.hpp"
 
 
 CheckButton::CheckButton(std::string name, sf::Font& font, int loc_x, int loc_y, sf::Texture &check) : Button(name, font, loc_x, loc_y){
