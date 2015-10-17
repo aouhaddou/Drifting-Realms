@@ -6,7 +6,6 @@
 #include "GUIManager.hpp"
 
 
-
 void call_me(){
 	std::cout << "call_me()\n";
 }

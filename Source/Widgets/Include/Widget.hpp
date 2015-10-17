@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <functional>
-#include "../ActionTypes.hpp"
-#include "../ActionManager.hpp"
+#include "../../Include/ActionTypes.hpp"
+#include "../../Include/ActionManager.hpp"
 
 class Widget{
 public:
